@@ -52,7 +52,8 @@ class User(db.Model):
     def by_name(cls, name):
         '''Fetches user from input name. Returns user info
         '''
-        user = User.all().filter('username = ', name).get()
+        user = User.all().filter('username =', name).get()
+        print user
         return user
 
     @classmethod
@@ -61,7 +62,7 @@ class User(db.Model):
 
     @classmethod
     def login(cls, name, password):
-        '''Validates username and password and, if valid, returns user id
+        '''Validates username and password and, if valid, returns user
         '''
         user = cls.by_name(name)
         if user and password_valid(name, password, user.password_hash):
@@ -77,8 +78,8 @@ class Post(db.Model):
 
     @classmethod
     def postquery(cls, start, limit):
-
-        return cls.all().order('-created').fetch(limit, offset=start)
+        posts = Post.all().order('-created').fetch(limit=10)
+        return posts
 
 class Handler(webapp2.RequestHandler):
     def write(self, *a, **kw):
@@ -91,32 +92,29 @@ class Handler(webapp2.RequestHandler):
     def render(self, template, **kw):
         self.write(self.render_str(template, **kw))
 
-    def hash_user_id(self, user_id):
-        return  hmac.new(secret.secret, user_id).hexdigest()
-
-    def set_cookie(self, user_id):
+    def set_cookie(self, key):
         '''Makes and sets a cookie
         '''
-        value = hash_user_id(user_id)
         self.response.headers.add_header(
-            'Set-Cookie', 'user={0}; Path=/'.format(make_cookie_hash(user_id)))
+            'Set-Cookie', 'user={0}; Path=/'.format(make_cookie_hash(key)))
 
     def initialize(self, *a, **kw):
         webapp2.RequestHandler.initialize(self, *a, **kw)
         cookie = self.request.cookies.get('user')
-        if cookie:
-            user_id = check_cookie_hash(cookie)
-            self.user = user and User.by_id(int(user_id))
+        if cookie and check_cookie_hash(cookie):
+            user = int(cookie.split('|')[0])
+            self.user = User.get_by_id(user)
         else:
-            user = None
-
-
+            self.user = None
 
 
 class MainHandler(Handler):
     def get(self):
         posts = Post.postquery(10, 0)
-        self.render('main.html', posts = posts)
+        if self.user:
+            self.render('main.html', posts = posts, user = self.user)
+        else:
+            self.render('main.html', posts = posts)
 
 class LoginHandler(Handler):
     def get(self):
@@ -126,14 +124,19 @@ class LoginHandler(Handler):
         name = self.request.get('username')
         password = self.request.get('password')
 
-        user = User.get_by_name(name)
-        salt = user.password_hash.split('|')[0]
+        if name and password:
+            user = User.by_name(name)
+            salt = user.password_hash.split('|')[1]
+        else:
+            self.render('login.html', username = name, error = "All fields\
+            required")
 
         if user and user.password_hash == hashword_converter(name, password, salt):
-            self.set_cookie(user.key)
+            self.set_cookie(str(user.key().id()))
             self.redirect('/welcome')
         else:
-            self.redirect('/signup')
+            self.render('login.html', username = name, error = "Username\
+            or Password incorect")
 
 
 class SignupHandler(Handler):
@@ -146,7 +149,9 @@ class SignupHandler(Handler):
         passcheck = self.request.get('passcheck')
         email = self.request.get('email')
 
-        if User.by_name('username'):
+        in_use = User.by_name(username)
+
+        if in_use:
             self.render('signup.html', username = username, email = email,
             error = 'Username taken')
         elif password != passcheck:
@@ -156,28 +161,66 @@ class SignupHandler(Handler):
             self.render('signup.html', username = username, email = email,
             error = 'Username and password must be a minimum of 6 characters')
         else:
-            newuser = User(username = username, password_hash = password, email = email,
+            password_hash = hashword_converter(username, password)
+            newuser = User(username = username, password_hash = password_hash, email = email,
             kudos = 0)
             newuser.put()
+            self.set_cookie(str(newuser.key().id()))
 
             self.redirect('/welcome')
 
 
 
-# class EntryPageHandler(Handler):
-#     #STUB!!!
-#
-# class LogoutHandler(Handler):
-#     #STUB!!
-#
-# class WelcomeHandler(Handler):
-#     #STUB!!!
+class NewPostHandler(Handler):
+    def get(self):
+        if not self.user:
+            self.redirect('/login')
+        self.render('newpost.html')
+
+    def post(self):
+        subject = self.request.get('subject')
+        content = self.request.get('content')
+
+        if not user:
+            self.redirect('/login')
+        elif not subject or not content:
+            self.render('newpost.html', subject = subject, content = content, error = 'We need a subject and some content')
+        else:
+            post = Post(subject = subject, content = content, user = self.user.username)
+            post.put()
+            self.redirect('/permalink/{0}'.format(post.key().id()))
+
+class LogoutHandler(Handler):
+    def get(self):
+        self.response.headers.add_header("Set-Cookie", value = None)
+    def post(self):
+        self.response.headers.add_header("Set-Cookie", value = None)
+        self.redirect('/login')
+
+class WelcomeHandler(Handler):
+    def get(self):
+        posts = Post.all().order('-created').fetch(limit=10)
+        self.render('welcome.html', posts = posts, user = self.user)
+
+class PermalinkHandler(Handler):
+    def get(self, post_id):
+        key = db.Key.from_path('BlogPost', int(post_id))
+        post = db.get(key)
+        if not post:
+            self.error(404)
+            return
+        self.render('permalink.html', post = post)
+
+class NewPostHandler(Handler):
+    def get(self):
+        self.write('wrong')
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
     ('/login', LoginHandler),
     ('/signup', SignupHandler),
-    # ('/blog/([0-9]+)', EntryPageHandler),
-    # ('/logout', LogoutHandler),
-    # ('/welcome', WelcomeHandler)
+    ('/permalink/([0-9]+)', PermalinkHandler),
+    ('/logout', LogoutHandler),
+    ('/welcome', WelcomeHandler)
+#    ('/newpost', NewPostHandler)
 ], debug=True)

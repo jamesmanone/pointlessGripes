@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="form">
-  <form>
+  <form method="post">
     <table>
       <tr>
         <td>Username</td>
@@ -16,6 +16,7 @@
         <td><input type="submit"></td>
       </tr>
     </table>
+    <p>{{error}}</p>
     <p>Not a member yet? <a href="/signup">Signup</a></p>
   </div>
 {% endblock %}

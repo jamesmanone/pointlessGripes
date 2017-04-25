@@ -1,14 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <div class="stream">
-    {% for post in posts %}
-      <article class="post">
+    <article class="post">
         <div class="heading">
           <h4 class="subject">{{post.subject}}</h4>
-          <span class="timestamp">
+          <div class="timestamp">
             <form method="post" action="/permalink/{{post.key}}">
-              {% if user.username == post.user %}
+              {% if user == post.user %}
                 <input type="hidden" name="delete" value="True">
                 <button type="submit" value="Submit">Delete</button>
               {% else %}
@@ -16,7 +14,8 @@
                 <button type="submit" value="Submit">Kudos!</button>
               {% endif %}
             </form>
-          <br>{{post.created}}</span>
+          <br>{{post.created}}
+         </div>
         </div>
         <div class="content">
           {{post.content}}
@@ -26,6 +25,5 @@
           <span class="right"><strong>-{{post.user}}</strong>
         </div>
       </article>
-    {% endfor %}
-  </div>
+  
 {% endblock %}

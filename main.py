@@ -187,7 +187,7 @@ class NewPostHandler(Handler):
             error = 'We need a subject and some content')
         else:
             post = Post(subject = subject, content = content,
-            user = self.user.username)
+            user = self.user.username, kudos = 0)
             post.put()
             self.redirect('/permalink/{0}'.format(post.key().id()))
 
@@ -224,8 +224,8 @@ class DeletedHandler(Handler):
 class LogoutHandler(Handler):
     def get(self):
         if self.user:
+            self.response.headers.add_header("Set-Cookie", 'user=; Path=/')
             self.redirect('/welcome')
-        self.response.headers.add_header("Set-Cookie", value = None)
     def post(self):
         self.response.headers.add_header("Set-Cookie", value = None)
         self.redirect('/login')
@@ -255,9 +255,10 @@ class PermalinkHandler(Handler):
             self.redirect('/login')
 
         if delete and self.user.username == post.user:
-            self.redirect('/editpost/{0}'.format(int(post_id)))
-        elif kudos and self.user.username != post.username:
+            self.redirect('/editpost/{0}'.format(post_id))
+        elif kudos and self.user.username != post.user:
             post.kudos += 1
+            self.redirect('/permalink/{0}'.format(post_id))
         elif edit and self.user.username == post.user:
             self.redirect('/editpost/{0}'.format(post_id))
         else:

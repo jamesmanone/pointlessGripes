@@ -1,29 +1,33 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <article class="post">
-        <div class="heading">
-          <h4 class="subject">{{post.subject}}</h4>
-          <div class="timestamp">
-            <form method="post" action="/permalink/{{post.key}}">
-              {% if user == post.user %}
-                <input type="hidden" name="delete" value="True">
-                <button type="submit" value="Submit">Delete</button>
-              {% else %}
-                <input type="hidden" name="kudos" value="True">
-                <button type="submit" value="Submit">Kudos!</button>
-              {% endif %}
+  <article class="post">
+    <div class="heading">
+      <h4 class="subject">{{post.subject}}</h4>
+      <div class="timestamp">
+        <form method="post" action="/permalink/{{post.key().id()}}">
+          {% if user.username == post.user %}
+            <input type="hidden" name="edit" value="True">
+              <button type="submit" value="Submit">Delete</button>
             </form>
+            <form method="post" action="/permalink/{{post.key().id()}}">
+              <input type="hidden" name="delete" value="True">
+              <button type="submit" value="submit">Edit</button>
+            {% else %}
+              <input type="hidden" name="kudos" value="True">
+              <button type="submit" value="Submit">Kudos!</button>
+            {% endif %}
+          </form>
           <br>{{post.created}}
-         </div>
         </div>
-        <div class="content">
-          {{post.content}}
-        </div>
-        <div class="tail">
-          <span class="left"><em>{{post.permalink}}</em></span>
-          <span class="right"><strong>-{{post.user}}</strong>
-        </div>
-      </article>
-  
+      </div>
+      <div class="content">
+        {{post.content}}
+      </div>
+      <div class="tail">
+        <span class="left"><em>{{post.permalink}}</em></span>
+        <span class="right"><strong>-{{post.user}}</strong>
+      </div>
+    </article>
+
 {% endblock %}

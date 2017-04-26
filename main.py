@@ -170,7 +170,6 @@ class SignupHandler(Handler):
             self.redirect('/welcome')
 
 
-
 class NewPostHandler(Handler):
     def get(self):
         if not self.user:
@@ -181,39 +180,88 @@ class NewPostHandler(Handler):
         subject = self.request.get('subject')
         content = self.request.get('content')
 
-        if not user:
+        if not self.user:
             self.redirect('/login')
         elif not subject or not content:
-            self.render('newpost.html', subject = subject, content = content, error = 'We need a subject and some content')
+            self.render('newpost.html', subject = subject, content = content,
+            error = 'We need a subject and some content')
         else:
-            post = Post(subject = subject, content = content, user = self.user.username)
+            post = Post(subject = subject, content = content,
+            user = self.user.username)
             post.put()
             self.redirect('/permalink/{0}'.format(post.key().id()))
 
+
+class EditHandler(Handler):
+    def get(self, post_id):
+        post = Post.get_by_id(int(post_id))
+
+        self.render('/editpost.html', subject = post.subject,
+            content = post.content)
+
+    def post(self, post_id):
+        post = Post.get_by_id(int(post_id))
+        delete = self.request.get('delete')
+        if self.user.username != post.user:
+            self.redirect('/login')
+        if delete:
+            post.delete()
+            post.put()
+            self.redirect('/deleted')
+        else:
+            post.subject = self.request.get('subject')
+            post.content = self.request.get('content')
+            post.put()
+            self.redirect('/permalink/{0}'.format(post_id))
+
+
+class DeletedHandler(Handler):
+    def get(self):
+        self.render('deleted.html')
+
+
+
 class LogoutHandler(Handler):
     def get(self):
+        if self.user:
+            self.redirect('/welcome')
         self.response.headers.add_header("Set-Cookie", value = None)
     def post(self):
         self.response.headers.add_header("Set-Cookie", value = None)
         self.redirect('/login')
+
 
 class WelcomeHandler(Handler):
     def get(self):
         posts = Post.all().order('-created').fetch(limit=10)
         self.render('welcome.html', posts = posts, user = self.user)
 
+
 class PermalinkHandler(Handler):
     def get(self, post_id):
-        key = db.Key.from_path('BlogPost', int(post_id))
-        post = db.get(key)
+        post = Post.get_by_id(int(post_id))
         if not post:
             self.error(404)
             return
-        self.render('permalink.html', post = post)
+        self.render('permalink.html', post = post, user = self.user)
 
-class NewPostHandler(Handler):
-    def get(self):
-        self.write('wrong')
+    def post(self, post_id):
+        kudos = self.request.get('kudos')
+        delete = self.request.get('delete')
+        edit = self.request.get('edit')
+        post = Post.get_by_id(int(post_id))
+
+        if not self.user:
+            self.redirect('/login')
+
+        if delete and self.user.username == post.user:
+            self.redirect('/editpost/{0}'.format(int(post_id)))
+        elif kudos and self.user.username != post.username:
+            post.kudos += 1
+        elif edit and self.user.username == post.user:
+            self.redirect('/editpost/{0}'.format(post_id))
+        else:
+            self.redirect('/login')
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
@@ -221,6 +269,8 @@ app = webapp2.WSGIApplication([
     ('/signup', SignupHandler),
     ('/permalink/([0-9]+)', PermalinkHandler),
     ('/logout', LogoutHandler),
-    ('/welcome', WelcomeHandler)
-#    ('/newpost', NewPostHandler)
+    ('/welcome', WelcomeHandler),
+    ('/newpost', NewPostHandler),
+    ('/editpost/([0-9]+)', EditHandler),
+    ('/deleted', DeletedHandler)
 ], debug=True)

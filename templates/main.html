@@ -7,10 +7,10 @@
         <div class="heading">
           <h4 class="subject">{{post.subject}}</h4>
           <span class="timestamp">
-            <form method="post" action="/permalink/{{post.key}}">
+            <form method="post" action="/permalink/{{post.key().id()}}">
               {% if user.username == post.user %}
-                <input type="hidden" name="delete" value="True">
-                <button type="submit" value="Submit">Delete</button>
+                <input type="hidden" name="edit" value="True">
+                <button type="submit" value="Submit">Edit/Delete</button>
               {% else %}
                 <input type="hidden" name="kudos" value="True">
                 <button type="submit" value="Submit">Kudos!</button>
@@ -22,7 +22,7 @@
           {{post.content}}
         </div>
         <div class="tail">
-          <span class="left"><em>{{post.permalink}}</em></span>
+          <span class="left"><em><a href='/permalink/{{post.key().id()}}'>permalink</a></em></span>
           <span class="right"><strong>-{{post.user}}</strong>
         </div>
       </article>

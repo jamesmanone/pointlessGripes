@@ -6,8 +6,17 @@
 </head>
 <body>
   <header>
-    <h1>PointlessGripes.com</h1>
+    <a href="/"><h1>PointlessGripes.com</h1></a>
   </header>
+  <nav id="nav">
+    <a href="/newpost">Post Gripe</a>
+    {% if user %}
+      <a href="/logout">Logout</a>
+    {% else %}
+      <a href="/login">Login</a>
+      <a href="/signup">Signup</a>
+    {% endif %}
+  </nav>
   <div class="content">
     {% block content %}
     {% endblock %}

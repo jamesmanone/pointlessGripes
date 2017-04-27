@@ -81,6 +81,22 @@ class Post(db.Model):
         posts = Post.all().order('-created').fetch(limit=10)
         return posts
 
+class Comments(db.Model):
+    user = db.StringProperty(required = True)
+    comment = db.TextProperty(required = True)
+    post_id = db.IntegerProperty(required = True)
+    created = db.DateTimeProperty(auto_now_add = True)
+
+
+class Kudos(db.Model):
+    user = db.StringProperty(required = True)
+    post_id = db.IntegerProperty(required = True)
+
+    @classmethod
+    def get_kudos(cls, post_id):
+        q = cls.all().filter('post_id =', post_id).count()
+        return q
+
 class Handler(webapp2.RequestHandler):
     def write(self, *a, **kw):
         self.response.write(*a, **kw)
@@ -101,16 +117,19 @@ class Handler(webapp2.RequestHandler):
     def initialize(self, *a, **kw):
         webapp2.RequestHandler.initialize(self, *a, **kw)
         cookie = self.request.cookies.get('user')
+        self.user = None
         if cookie and check_cookie_hash(cookie):
             user = int(cookie.split('|')[0])
             self.user = User.get_by_id(user)
-        else:
-            self.user = None
 
 
 class MainHandler(Handler):
     def get(self):
         posts = Post.postquery(10, 0)
+        for post in posts:
+            kudos = Kudos.get_kudos(post.key())
+            post.kudos = kudos
+            post.put()
         if self.user:
             self.render('main.html', posts = posts, user = self.user)
         else:
@@ -256,9 +275,15 @@ class PermalinkHandler(Handler):
 
         if delete and self.user.username == post.user:
             self.redirect('/editpost/{0}'.format(post_id))
+
         elif kudos and self.user.username != post.user:
-            post.kudos += 1
-            self.redirect('/permalink/{0}'.format(post_id))
+            if not Kudos.all().filter("post_id=", post.key().id()).filter("user =", self.user.username):
+                kudos = Kudos(user = self.user.username, post_id = post.key().id())
+                kudos.put()
+                self.redirect('/permalink/{0}'.format(post_id))
+            else:
+                self.render('permalink.html', user = self.user, post = post, error = 'you already gave kudos.')
+
         elif edit and self.user.username == post.user:
             self.redirect('/editpost/{0}'.format(post_id))
         else:

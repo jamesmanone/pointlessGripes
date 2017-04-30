@@ -3,26 +3,32 @@
 <head lang="en">
   <meta charset="utf-8">
   <title>PointlessGripes - {{pagename}}</title>
+  <link href="/static/css/style.css" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="/static/js/app.js"></script>
 </head>
 <body>
-  <header>
-    <a href="/"><h1>PointlessGripes.com</h1></a>
-  </header>
-  <nav id="nav">
-    <a href="/newpost">Post Gripe</a>
-    {% if user %}
-      <a href="/logout">Logout</a>
-    {% else %}
-      <a href="/login">Login</a>
-      <a href="/signup">Signup</a>
-    {% endif %}
-  </nav>
-  <div class="content">
-    {% block content %}
-    {% endblock %}
+  <div class="container">
+    <header>
+      <a href="/"><img src="http://placehold.it/600x200"</a>
+      <nav id="nav">
+        <a href="/newpost">Post Gripe</a>
+        {% if user %}
+          <a href="/logout">Logout</a>
+        {% else %}
+          <a href="/login">Login</a>
+          <a href="/signup">Signup</a>
+        {% endif %}
+      </nav>
+    </header>
+
+    <div class="content">
+      {% block content %}
+      {% endblock %}
+    </div>
+    <footer>
+      <p>Some Placeholder text</p>
+    </footer>
   </div>
-  <footer>
-    <p>Some Placeholder text</p>
-  </footer>
 </body>
 </html>

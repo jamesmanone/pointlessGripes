@@ -2,26 +2,32 @@
 
 {% block content %}
   <div class="stream">
+    <button>click me</button>
     {% for post in posts %}
-      <article class="post">
+      <article class="post" id="{{post.key().id()}}">
         <div class="heading">
-          <h4 class="subject">{{post.subject}}</h4>
-          <span class="right-info">
-            {% if user %}
-              <form method="post" action="/permalink/{{post.key().id()}}">
-                {% if user.username == post.user %}
-                  <input type="hidden" name="edit" value="True">
-                  <button type="submit" value="Submit">Edit/Delete</button>
-                {% else %}
-                  <input type="hidden" name="kudos" value="True">
-                  <button type="submit" value="Submit">Kudos!</button>
-                {% endif %}
-              </form>
+          <h3 class="subject"><a href="/permalink/{{post.key().id()}}">{{post.subject}}</a></h3>
+        </div>
+        <div class="right-info">
+          <form>
+            <button formmethod="post" formaction="/upvote/{{post.key().id()}}" type="submit">upvote</button>
+            <button formmethod="post" formaction="/delete/{{post.key().id()}}" type="submit"><span class="fontawesome-trash"></span></button>
+          </form>
+          {% if user %}
+            {% if user.username == post.user %}
+              <div class="delete" id="{{post.key().id()}}"><span class="fontawesome-trash">a</span></div>
+            {% else %}
+              <div class="upvote" id="{{post.key().id()}}"><span class="fontawesome-plus"></span></div>
             {% endif %}
-          <br>{{post.created}}<br>{{post.kudos}} kudos</span>
+          {% endif %}
+          <br>{{post.created}}<br>
+            {{post.upvotes}}
+          </div>
         </div>
         <div class="content">
-          {{post.content}}
+          {{post.content | safe}}
+          <!-- closing any unclosed tags-->
+          </b></em></strong></code></u>
         </div>
         <div class="tail">
           <span class="left"><em><a href='/permalink/{{post.key().id()}}'>permalink</a></em></span>

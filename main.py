@@ -42,6 +42,27 @@ def password_valid(name, password, password_hash):
     if hashword_converter(name, password, salt) == password_hash:
         return True
 
+def content_escape(content):
+    content = str(content)
+    content = content.replace('&', '&amp;')
+    content = content.replace('<', '&lt;')
+    content = content.replace('>', '&gt;')
+    content = content.replace('"', '&quot;')
+    content = content.replace('&lt;b&gt;', '<b>')
+    content = content.replace('&lt;/b&gt;', '</b>')
+    content = content.replace('&lt;strong&gt;', '<strong>')
+    content = content.replace('&lt;/strong&gt;', '</strong>')
+    content = content.replace('&lt;em&gt;', '<em>')
+    content = content.replace('&lt;/em&gt;', '</em>')
+    content = content.replace('&lt;br&gt;', '<br>')
+    content = content.replace('&lt;code&gt;', '<code>')
+    content = content.replace('&lt;/code&gt;', '</code>')
+    content = content.replace('&lt;u&gt;', '<u>')
+    content = content.replace('&lt;/u&gt;', '</u>')
+    content = content.replace('\n', '<br>')
+    content = content.replace('  ', '&nbsp;&nbsp;')
+    return content
+
 class User(db.Model):
     username = db.StringProperty(required = True)
     password_hash = db.StringProperty(required = True)
@@ -56,9 +77,6 @@ class User(db.Model):
         print user
         return user
 
-    @classmethod
-    def by_id(cls, user_id):
-        return User.get_by_id(user_id)
 
     @classmethod
     def login(cls, name, password):
@@ -74,28 +92,25 @@ class Post(db.Model):
     created = db.DateTimeProperty(auto_now_add = True)
     last_modified = db.DateTimeProperty(auto_now = True)
     user = db.StringProperty(required = True)
-    kudos = db.IntegerProperty()
+    upvote = db.IntegerProperty(required = True)
 
     @classmethod
     def postquery(cls, start, limit):
-        posts = Post.all().order('-created').fetch(limit=10)
+        posts = Post.all().order('-created').fetch(limit = limit,
+        offset = start)
         return posts
 
-class Comments(db.Model):
+class Comment(db.Model):
     user = db.StringProperty(required = True)
     comment = db.TextProperty(required = True)
     post_id = db.IntegerProperty(required = True)
     created = db.DateTimeProperty(auto_now_add = True)
 
 
-class Kudos(db.Model):
+class Upvote(db.Model):
     user = db.StringProperty(required = True)
     post_id = db.IntegerProperty(required = True)
 
-    @classmethod
-    def get_kudos(cls, post_id):
-        q = cls.all().filter('post_id =', post_id).count()
-        return q
 
 class Handler(webapp2.RequestHandler):
     def write(self, *a, **kw):
@@ -117,19 +132,17 @@ class Handler(webapp2.RequestHandler):
     def initialize(self, *a, **kw):
         webapp2.RequestHandler.initialize(self, *a, **kw)
         cookie = self.request.cookies.get('user')
-        self.user = None
         if cookie and check_cookie_hash(cookie):
             user = int(cookie.split('|')[0])
             self.user = User.get_by_id(user)
+        else:
+            self.user = False
 
 
 class MainHandler(Handler):
     def get(self):
-        posts = Post.postquery(10, 0)
-        for post in posts:
-            kudos = Kudos.get_kudos(post.key())
-            post.kudos = kudos
-            post.put()
+        posts = Post.all().order('-created')
+        print posts
         if self.user:
             self.render('main.html', posts = posts, user = self.user)
         else:
@@ -149,6 +162,7 @@ class LoginHandler(Handler):
         else:
             self.render('login.html', username = name, error = "All fields\
             required")
+            return
 
         if user and user.password_hash == hashword_converter(name, password, salt):
             self.set_cookie(str(user.key().id()))
@@ -205,49 +219,94 @@ class NewPostHandler(Handler):
             self.render('newpost.html', subject = subject, content = content,
             error = 'We need a subject and some content')
         else:
-            post = Post(subject = subject, content = content,
-            user = self.user.username, kudos = 0)
+            content = content_escape(content)
+            post = Post(subject = subject, content = content,\
+            user = self.user.username, upvote = 0)
             post.put()
             self.redirect('/permalink/{0}'.format(post.key().id()))
 
 
 class EditHandler(Handler):
     def get(self, post_id):
-        post = Post.get_by_id(int(post_id))
+        post =  Post.get_by_id(int(post_id))
 
-        self.render('/editpost.html', subject = post.subject,
+        self.render('editpost.html', subject = post.subject,
             content = post.content)
 
     def post(self, post_id):
         post = Post.get_by_id(int(post_id))
-        delete = self.request.get('delete')
-        if self.user.username != post.user:
+        subject = self.request.get('subject')
+        content = self.request.get('content')
+        if not self.user:
             self.redirect('/login')
-        if delete:
-            post.delete()
-            post.put()
-            self.redirect('/deleted')
+        elif self.user.username != post.user:
+            self.error(401)
+            return
+        elif not subject or not content:
+            self.render('editpost.html', post = post, subject = subject, content = content, error = 'We need a subject and some content')
         else:
-            post.subject = self.request.get('subject')
-            post.content = self.request.get('content')
+            post.subject = subject
+            post.content = content_escape(content)
             post.put()
             self.redirect('/permalink/{0}'.format(post_id))
 
 
-class DeletedHandler(Handler):
-    def get(self):
-        self.render('deleted.html')
+class CommentHandler(Handler):
+
+    def get(self, post_id):
+        comments = Comment.all().filter('post_id =', int(post_id)).order('created')
+        self.render('comments.html', comments = comments)
+    def post(self, post_id):
+
+        comment = self.request.get('comment')
+        if not self.user:
+            self.error(401)
+            return
+        elif not comment:
+            self.write('Say something!')
+        else:
+            comment = Comment(user = self.user.username, comment = comment, post_id = int(post_id))
+            comment.put()
+
+
+class UpvoteHandler(Handler):
+
+    def post(self, post_id):
+        post = Post.get_by_id(int(post_id))
+        if self.user:
+            upvote = Upvote.all().filter('user = ', self.user).filter('post_id = ', int(post_id))
+            if post.user == self.user.username:
+                self.write('You can\'t vote up your own post')
+            elif upvote:
+                self.write('One per customer, pal')
+            else:
+                post.upvote+=1
+                post.put()
+                upvote = Upvote(user = self.user.username, post_id = post.key().id())
+                upvote.put()
+        else:
+            self.error(401)
+
+
+
+
+class DeleteHandler(Handler):
+
+    def post(self, post_id):
+        post = Post.get_by_id(int(post_id))
+        if not self.user:
+            self.redirect('/login')
+        elif self.user.username != post.user:
+            self.render('permalink.html', error = 'You cannot delete someone elses post')
+        else:
+            post.delete()
 
 
 
 class LogoutHandler(Handler):
     def get(self):
-        if self.user:
-            self.response.headers.add_header("Set-Cookie", 'user=; Path=/')
-            self.redirect('/welcome')
-    def post(self):
-        self.response.headers.add_header("Set-Cookie", value = None)
-        self.redirect('/login')
+        self.response.headers.add_header("Set-Cookie", 'user=; Path=/')
+        self.redirect('/')
 
 
 class WelcomeHandler(Handler):
@@ -264,30 +323,7 @@ class PermalinkHandler(Handler):
             return
         self.render('permalink.html', post = post, user = self.user)
 
-    def post(self, post_id):
-        kudos = self.request.get('kudos')
-        delete = self.request.get('delete')
-        edit = self.request.get('edit')
-        post = Post.get_by_id(int(post_id))
 
-        if not self.user:
-            self.redirect('/login')
-
-        if delete and self.user.username == post.user:
-            self.redirect('/editpost/{0}'.format(post_id))
-
-        elif kudos and self.user.username != post.user:
-            if not Kudos.all().filter("post_id=", post.key().id()).filter("user =", self.user.username):
-                kudos = Kudos(user = self.user.username, post_id = post.key().id())
-                kudos.put()
-                self.redirect('/permalink/{0}'.format(post_id))
-            else:
-                self.render('permalink.html', user = self.user, post = post, error = 'you already gave kudos.')
-
-        elif edit and self.user.username == post.user:
-            self.redirect('/editpost/{0}'.format(post_id))
-        else:
-            self.redirect('/login')
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
@@ -298,5 +334,7 @@ app = webapp2.WSGIApplication([
     ('/welcome', WelcomeHandler),
     ('/newpost', NewPostHandler),
     ('/editpost/([0-9]+)', EditHandler),
-    ('/deleted', DeletedHandler)
+    ('/delete/([0-9]+)', DeleteHandler),
+    ('/comment/([0-9]+)', CommentHandler),
+    ('/upvote/([0-9]+)', UpvoteHandler)
 ], debug=True)

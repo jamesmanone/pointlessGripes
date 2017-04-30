@@ -3,7 +3,7 @@
 {% block content %}
   <article class="post">
     <div class="heading">
-      <h4 class="subject">{{post.subject}}</h4>
+      <h3 class="subject">{{post.subject}}</h3>
       <div class="timestamp">
         <form method="post" action="/permalink/{{post.key().id()}}">
           {% if user.username == post.user %}
@@ -22,7 +22,9 @@
         </div>
       </div>
       <div class="content">
-        {{post.content}}
+        {{post.content | safe}}
+        <!-- closing any unclosed tags-->
+        </b></em></strong></code></u>
       </div>
       <div class="tail">
         <span class="left"><em>{{post.permalink}}</em></span>

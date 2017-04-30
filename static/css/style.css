@@ -1,0 +1,25 @@
+@import url(http://weloveiconfonts.com/api/?family=fontawesome);
+
+/* fontawesome */
+[class*="fontawesome-plus"]:before {
+  font-family: 'FontAwesome', sans-serif;
+  color: red;
+}
+
+[class*="fontawesome-trash"]:before {
+  font-family: 'FontAwesome', sans-serif;
+}
+
+.post {
+  display: flex;
+}
+
+.heading {
+  width: 50%;
+  margin:0;
+}
+
+.right-info {
+  width: 50%;
+  margin: 0;
+}

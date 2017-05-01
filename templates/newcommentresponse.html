@@ -1,0 +1,11 @@
+
+<div class="comment" id="{{comment.key().id()}}">
+  <p>
+    <b>{{comment.user}}: </b> {{comment.comment}}
+    {% if user %}
+      {% if user.username == comment.user %}
+        <span class="fontawesome-remove-sign"></span>
+      {% endif %}
+    {% endif %}
+    </p>
+  </div>

@@ -2,6 +2,9 @@
 
 {% block content %}
   <div class="stream">
+    <div class="username">
+      <h2>{{title}}</h2>
+    </div>
     {% for post in posts %}
       <article class="post" id="{{post.key().id()}}">
         <div class="title-bar">
@@ -11,9 +14,9 @@
           <div class="interact">
             {% if user %}
               {% if user.username == post.user %}
-                <p class="interact"><a class="edit-link" href="/editpost/{{post.key().id()}}"><span class="fontawesome-edit"></span></a>
-                  <span class="fontawesome-trash"></span>
-                  <span class="fontawesome-plus-sign-alt"> </span> <span class="upvote-count"> {{post.upvote}}</span></p>
+              <p class="interact"><a class="edit-link" href="/editpost/{{post.key().id()}}"><span class="fontawesome-edit"></span></a>
+                <span class="fontawesome-trash"></span>
+                <span class="fontawesome-plus-sign-alt"> </span> <span class="upvote-count"> {{post.upvote}}</span></p>
               {% else %}
                 <p class="interact"><span class="error"></span><span class="fontawesome-plus"></span><span class="upvote-count"> {{post.upvote}}</span></p>
               {% endif %}

@@ -1,35 +1,44 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <article class="post">
-    <div class="heading">
-      <h3 class="subject">{{post.subject}}</h3>
-      <div class="timestamp">
-        <form method="post" action="/permalink/{{post.key().id()}}">
+  <article class="post" id="{{post.key().id()}}">
+    <div class="title-bar">
+      <div class="heading">
+        <h3 class="subject"><a href="/permalink/{{post.key().id()}}">{{post.subject}}</a></h3>
+      </div>
+      <div class="interact">
+        {% if user %}
           {% if user.username == post.user %}
-            <input type="hidden" name="edit" value="True">
-              <button type="submit" value="Submit">Delete</button>
-            </form>
-            <form method="post" action="/permalink/{{post.key().id()}}">
-              <input type="hidden" name="delete" value="True">
-              <button type="submit" value="submit">Edit</button>
-            {% else %}
-              <input type="hidden" name="kudos" value="True">
-              <button type="submit" value="Submit">Kudos!</button>
-            {% endif %}
-          </form>
-          <br>{{post.created}}
+          <p class="interact"><a class="edit-link" href="/editpost/{{post.key().id()}}"><span class="fontawesome-edit"></span></a>
+            <span class="fontawesome-trash"></span>
+            <span class="fontawesome-plus-sign-alt"> </span> <span class="upvote-count"> {{post.upvote}}</span></p>
+          {% else %}
+            <p class="interact"><span class="error"></span><span class="fontawesome-plus"></span><span class="upvote-count"> {{post.upvote}}</span></p>
+          {% endif %}
+        {% endif %}
+        {{post.upvotes}}
         </div>
       </div>
-      <div class="content">
-        {{post.content | safe}}
-        <!-- closing any unclosed tags-->
-        </b></em></strong></code></u>
-      </div>
-      <div class="tail">
-        <span class="left"><em>{{post.permalink}}</em></span>
-        <span class="right"><strong>-{{post.user}}</strong>
-      </div>
-    </article>
+    <div class="content">
+      {{post.content | safe}}
+      <!-- closing any unclosed tags-->
+      </b></em></strong></code></u>
+    </div>
+    <div class="tail">
+      <a href="/user/{{post.user}}"<em>-{{post.user}}</em></a>
+    </div>
+    <div class="comments">
+    </div>
+    <div class="newcomment">
+      <input name="newcomment" type="text" value="{{comment}}">
+      <button name="submit">Send</button>
+    </div>
+    <div class="comment-tab">
+      <span class="fontawesome-double-angle-down"></span> comments <span class="fontawesome-double-angle-down"></span>
+    </div>
+    <div class="open-tab">
+      <span class="fontawesome-double-angle-up"></span> close <span class="fontawesome-double-angle-up"></span>
+    </div>
+  </article>
 
 {% endblock %}

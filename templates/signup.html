@@ -3,7 +3,7 @@
 {% block content %}
 <div class="form">
   <form method="post">
-    <table>
+    <table class="user-management">
       <tr>
         <td>Username</td>
         <td><input type="text" name="username" value="{{username}}"><td>
@@ -23,7 +23,9 @@
       <tr>
         <td><input type="submit"></td>
       </tr>
+      <tr>
+        <td>{{error}}</td>
+      </tr>
     </table>
-    <p>{{error}}</p>
   </div>
 {% endblock %}

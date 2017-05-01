@@ -169,6 +169,7 @@ footer {
   color: white;
   border-style: hidden;
   border-radius: 5px;
+  text-align: center;
 }
 
 .tail {
@@ -211,7 +212,7 @@ footer {
 }
 
 .user-management {
-  background-color: white;
+  background-color: #eae8e1;
   text-align: center;
 }
 
@@ -219,7 +220,7 @@ footer {
   font-size: 12px;
 }
 
-@@media only screen and (min-width: 500px) {
+@media only screen and (min-width: 500px) {
   .navbar {
     margin: 0 0 15px 0
   }

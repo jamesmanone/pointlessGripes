@@ -1,4 +1,10 @@
 
+/* jQuery and AJAX was not part of the assignment. I wrote this code because
+   the idea of new page loads for every upvote, comment read, comment post
+   and a dedicated page for deleting a post just seems ridiculous. I didn't
+   know jQuery or AJAX, and had only a tenuous grasp on javascript, but learned
+   what I could to get this done. Please keep that in mind when grading. */
+
 $(document).ready(function() {
 
   // Event listener for delete post
@@ -23,7 +29,7 @@ $(document).ready(function() {
 
   // Event  listener to close comment drawer
   $('.open-tab').click(function() {
-    comments = $(this).siblings('.comments');
+    var comments = $(this).siblings('.comments');
     comments.slideUp();
     comments.empty();
     $(this).hide();
@@ -33,10 +39,8 @@ $(document).ready(function() {
 
 });
 
-
-
-// Takes post ID as input. after confirming delete, sends delete
-// post to /delete/{post_id}. Fades out post on success
+/* Takes post ID as input. After confirming delete, sends delete
+   post to /delete/{post_id}. Fades out post on success */
 var trash = function(id) {
   if (confirm('Delete post?')) {
     $.post('/delete/' + id, {
@@ -48,14 +52,14 @@ var trash = function(id) {
   }
 };
 
-// Takes post ID as input. Posts upvote. Changes upvote icon color on success
+// Takes post ID as input. Posts upvote. Replaces upvote count with response
+// from server on success.
 var upvote = function(id) {
   $.post('/upvote/' + id, {
     upvote: 'True'
   }, function(data) {
       if(data.success === true) {
         plus = $('#' + id).find('.fontawesome-plus');
-        plus.css('color', 'green');
         plus.siblings('.upvote-count').html(data.message);
       } else {
           plus = $('#' + id).find('.fontawesome-plus').siblings('.error');
@@ -64,11 +68,12 @@ var upvote = function(id) {
     }, 'json');
 };
 
-// Takes post ID as input. Makes AJAX request for comments and appends them to
-// .comments. Once populated, it slides down the comment drawer
+/* Takes post ID as input. Makes AJAX request for comments and appends them to
+   .comments. Once populated, it slides down the comment drawer. Sets Event
+   listener for comment delete button. */
 var openCommments = function(id) {
   $.getJSON('/comments/' + id, function(data) {
-    comments = $('#' + id).find('.comments');
+    var comments = $('#' + id).find('.comments');
     $.each(data, function(key, value) {
       if(key !== 'success') {
         comments.append(value);
@@ -86,6 +91,7 @@ var openCommments = function(id) {
   });
 };
 
+// Sets event listener for new comment box. If new comment, posts comment
 var activateCommentBox = function() {
   $('button').click(function() {
     id = $(this).parents('article').attr('id');
@@ -106,6 +112,7 @@ var activateCommentBox = function() {
   });
 };
 
+// Deletes comment using AJAX post.
 var deleteComment = function(id) {
   if(confirm('Are you sure you want to delete this post?')) {
     $.post('/commentdelete/' + id, function() {

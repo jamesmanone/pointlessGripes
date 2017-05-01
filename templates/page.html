@@ -45,7 +45,8 @@
       </article>
     {% endfor %}
     <div class="pagenav">
-      <a href="/page/2">Next page</a>
+      <a href="/page/{{pagenumber - 1}}">Previous</a>
+      <a href="/page/{{pagenumber + 1}}">Next</a>
     </div>
   </div>
 {% endblock %}

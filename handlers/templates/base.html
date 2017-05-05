@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+  <meta charset="utf-8">
+  <title>PointlessGripes - {{pagename}}</title>
+  <link href="/static/css/style.css" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="/static/js/app.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="/"><img src="/static/img/pglogo.svg"></a>
+      <nav id="nav">
+        <ul class="navbar">
+          <li>
+            <a href="/">The Gripes!</a>
+          </li>
+          <li>
+            <a href="/newpost">Post Gripe</a>
+          </li>
+          {% if user %}
+            <li>
+              <a href="/user/{{user.username}}">My Posts</a>
+            </li>
+            <li>
+              <a href="/logout">Logout</a>
+            </li>
+          {% else %}
+            <li>
+              <a href="/login">Login</a>
+            </li>
+            <li>
+              <a href="/signup">Signup</a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+      <br>
+    </header>
+
+    <div class="content">
+      {% block content %}
+      {% endblock %}
+    </div>
+    <footer>
+      <p>Created by James Martin. Gripe on!</p>
+    </footer>
+  </div>
+</body>
+</html>

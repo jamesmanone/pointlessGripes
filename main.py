@@ -1,13 +1,14 @@
 import os
 import webapp2
 import jinja2
-from google.appengine.ext import db
+# from google.appengine.ext import db
 import secret
 import hashlib
 import hmac
 import random
 from string import letters
 import json
+import models
 
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -77,57 +78,57 @@ def content_escape(content):
     return content
 
 
-class User(db.Model):
-    username = db.StringProperty(required=True)
-    password_hash = db.StringProperty(required=True)
-    email = db.StringProperty()
-    upvotes = db.IntegerProperty()
-
-    @classmethod
-    def by_name(cls, name):
-        '''Fetches user from input name. Returns user info
-        '''
-        user = User.all().filter('username =', name).get()
-        print user
-        return user
-
-    @classmethod
-    def login(cls, name, password):
-        '''Validates username and password and, if valid, returns user
-        '''
-        user = cls.by_name(name)
-        if user and password_valid(name, password, user.password_hash):
-            return user
-
-
-class Post(db.Model):
-    subject = db.StringProperty(required=True)
-    content = db.TextProperty(required=True)
-    created = db.DateTimeProperty(auto_now_add=True)
-    last_modified = db.DateTimeProperty(auto_now=True)
-    user = db.StringProperty(required=True)
-    upvote = db.IntegerProperty(required=True)
-
-    @classmethod
-    def postquery(cls, start, limit):
-        posts = Post.all().order('-created').fetch(limit=limit,
-                                                   offset=start)
-        return posts
-
-
-class Comment(db.Model):
-    user = db.StringProperty(required=True)
-    comment = db.TextProperty(required=True)
-    post_id = db.IntegerProperty(required=True)
-    created = db.DateTimeProperty(auto_now_add=True)
-
-
-class Upvote(db.Model):
-    '''This is a log of all upvotes. used to check if
-    someone has already upvoted a post
-    '''
-    user = db.StringProperty(required=True)
-    post_id = db.IntegerProperty(required=True)
+# class User(db.Model):
+#     username = db.StringProperty(required=True)
+#     password_hash = db.StringProperty(required=True)
+#     email = db.StringProperty()
+#     upvotes = db.IntegerProperty()
+#
+#     @classmethod
+#     def by_name(cls, name):
+#         '''Fetches user from input name. Returns user info
+#         '''
+#         user = User.all().filter('username =', name).get()
+#         print user
+#         return user
+#
+#     @classmethod
+#     def login(cls, name, password):
+#         '''Validates username and password and, if valid, returns user
+#         '''
+#         user = cls.by_name(name)
+#         if user and password_valid(name, password, user.password_hash):
+#             return user
+#
+#
+# class Post(db.Model):
+#     subject = db.StringProperty(required=True)
+#     content = db.TextProperty(required=True)
+#     created = db.DateTimeProperty(auto_now_add=True)
+#     last_modified = db.DateTimeProperty(auto_now=True)
+#     user = db.StringProperty(required=True)
+#     upvote = db.IntegerProperty(required=True)
+#
+#     @classmethod
+#     def postquery(cls, start, limit):
+#         posts = Post.all().order('-created').fetch(limit=limit,
+#                                                    offset=start)
+#         return posts
+#
+#
+# class Comment(db.Model):
+#     user = db.StringProperty(required=True)
+#     comment = db.TextProperty(required=True)
+#     post_id = db.IntegerProperty(required=True)
+#     created = db.DateTimeProperty(auto_now_add=True)
+#
+#
+# class Upvote(db.Model):
+#     '''This is a log of all upvotes. used to check if
+#     someone has already upvoted a post
+#     '''
+#     user = db.StringProperty(required=True)
+#     post_id = db.IntegerProperty(required=True)
 
 
 class Handler(webapp2.RequestHandler):
@@ -162,7 +163,7 @@ class Handler(webapp2.RequestHandler):
         cookie = self.request.cookies.get('user')
         if cookie and check_cookie_hash(cookie):
             user = int(cookie.split('|')[0])
-            self.user = User.get_by_id(user)
+            self.user = models.User.get_by_id(user)
         else:
             self.user = False
 
@@ -178,11 +179,14 @@ class MainHandler(Handler):  # For /
     def get(self):
         '''Retrieves posts from db and displays them
         '''
-        posts = Post.all().order('-created')
-        if self.user:
-            self.render('main.html', posts=posts[0:20], user=self.user)
+        posts = models.Post.all().order('-created')
+        if posts:
+            if self.user:
+                self.render('main.html', posts=posts, user=self.user)
+            else:
+                self.render('main.html', posts=posts)
         else:
-            self.render('main.html', posts=posts)
+            self.render('main.html')
 
 
 class PageHandler(Handler):  # For /page/{pagenumber}
@@ -190,7 +194,7 @@ class PageHandler(Handler):  # For /page/{pagenumber}
         pagenumber = int(pagenumber)
         start = pagenumber*20 - 20
         end = start + 21
-        posts = Post.all().order('-created')
+        posts = models.Post.all().order('-created')
         if self.user:
             self.render('page.html', posts=posts[start:end], user=self.user,
                         pagenumber=pagenumber)
@@ -203,13 +207,15 @@ class UserHandler(Handler):  # For /user/{username}
     '''Retrieves posts by a specified user and displays them
     '''
     def get(self, user_id):
-        posts = Post.all().filter('user =', user_id).order('-created')
-        print posts
-        if self.user:
-            self.render('user.html', posts=posts, user=self.user,
-                        title=user_id)
+        posts = models.User.by_name(user_id).posts.order('-created')
+        if posts:
+            if self.user:
+                self.render('user.html', posts=posts, user=self.user,
+                            title=user_id)
+            else:
+                self.render('user.html', posts=posts, title=user_id)
         else:
-            self.render('user.html', posts=posts, title=user_id)
+            self.error(404)
 
 
 class LoginHandler(Handler):  # For /login
@@ -229,7 +235,7 @@ class LoginHandler(Handler):  # For /login
         password = self.request.get('password')
 
         if name and password:
-            user = User.by_name(name)
+            user = models.User.by_name(name)
             salt = user.password_hash.split('|')[1]
         else:
             self.render('login.html', username=name,
@@ -264,7 +270,7 @@ class SignupHandler(Handler):  # For /signup
         passcheck = self.request.get('passcheck')
         email = self.request.get('email')
 
-        in_use = User.by_name(username)
+        in_use = models.User.by_name(username)
 
         if in_use:
             self.render('signup.html', username=username, email=email,
@@ -276,15 +282,16 @@ class SignupHandler(Handler):  # For /signup
             self.render('signup.html', username=username, email=email,
                         error='Username and password must be a minimum \
                         of 6 characters')
-        elif not check_password(password) or not check_username(username):
-            self.render('signup.html', username=username, email=email,
-                        error='Usernames and passwords can contain only\
-                        capital and lowercase letters, numbers, and the\
-                        special characters @ # $ % ^ & + =')
+        # elif not check_password(password) or not check_username(username):
+        #     self.render('signup.html', username=username, email=email,
+        #                 error='Usernames and passwords can contain only\
+        #                 capital and lowercase letters, numbers, and the\
+        #                 special characters @ # $ % ^ & + =')
         else:
             password_hash = hashword_converter(username, password)
-            newuser = User(username=username, password_hash=password_hash,
-                           email=email, upvotes=0)
+            newuser = models.User(username=username,
+                                  password_hash=password_hash,
+                                  email=email, upvotes=0)
             newuser.put()
             self.set_cookie(str(newuser.key().id()))
 
@@ -316,8 +323,8 @@ class NewPostHandler(Handler):  # For /newpost
                         error='We need a subject and some content')
         else:
             content = content_escape(content)
-            post = Post(subject=subject, content=content,
-                        user=self.user.username, upvote=0)
+            post = models.Post(subject=subject, content=content,
+                               user=self.user)
             post.put()
             self.redirect('/permalink/{0}'.format(post.key().id()))
 
@@ -326,8 +333,11 @@ class EditHandler(Handler):  # for /editpost
     def get(self, post_id):
         '''Sends a form to allow user to edit a post
         '''
-        post = Post.get_by_id(int(post_id))
-        if self.user.username == post.user:
+        post = models.Post.get_by_id(int(post_id))
+        if not post:
+            self.error(404)
+            return
+        elif self.user.key() == post.user.key():
             self.render('editpost.html', subject=post.subject,
                         content=post.content, post_id=post_id, user=self.user)
         else:
@@ -337,12 +347,15 @@ class EditHandler(Handler):  # for /editpost
         '''Takes data from edit form. Verifies user owns the post, and if so
         updates post in db
         '''
-        post = Post.get_by_id(int(post_id))
+        post = models.Post.get_by_id(int(post_id))
+        if not post:
+            self.error(404)
+            return
         subject = self.request.get('subject')
         content = self.request.get('content')
         if not self.user:
             self.redirect('/login')
-        elif self.user.username != post.user:
+        elif self.user != post.user:
             self.error(401)
             return
         elif not subject or not content:
@@ -361,8 +374,8 @@ class CommentHandler(Handler):
     def get(self, post_id):
         '''Retrieves comments for post. Sends them to user in JSON
         '''
-        comments = Comment.all().filter('post_id =',
-                                        int(post_id)).order('created')
+        post = models.Post.get_by_id(int(post_id))
+        comments = post.comments
         obj = {'success': True}
         if comments and self.user:
             obj['result'] = self.render_str('comment.html', comments=comments,
@@ -376,6 +389,7 @@ class CommentHandler(Handler):
         added to db, rendered using jinja, and returned to the user in JSON.
         If error, success: False and an error message is sent to user in JSON.
         '''
+        post = models.Post.get_by_id(int(post_id))
         comment = self.request.get('comment')
         if not self.user:
             obj = {
@@ -385,8 +399,8 @@ class CommentHandler(Handler):
             }
             self.json(obj)
         else:
-            comment = Comment(user=self.user.username, comment=comment,
-                              post_id=int(post_id))
+            comment = models.Comment(user=self.user, comment=comment,
+                                     post=post)
             comment.put()
             print comment.comment
             obj = {
@@ -407,12 +421,10 @@ class UpvoteHandler(Handler):
         If user is no logged in or has already upvoted this post success: False
         and error message is sent in JSON
         '''
-        post = Post.get_by_id(int(post_id))
+        post = models.Post.get_by_id(int(post_id))
         if self.user:
-            upvote = Upvote.all().filter('user =',
-                                         self.user.username).filter(
-                                         'post_id =', int(post_id)).get()
-            if post.user == self.user.username:
+            upvote = post.upvotes.filter('user =', self.user).get()
+            if post.user == self.user:
                 self.response.headers['Content-Type'] = 'application/json'
                 obj = {
                         'success': False,
@@ -427,10 +439,7 @@ class UpvoteHandler(Handler):
                         }
                 self.write(json.dumps(obj))
             else:
-                post.upvote += 1
-                post.put()
-                upvote = Upvote(user=self.user.username,
-                                post_id=post.key().id())
+                upvote = models.Upvote(user=self.user, post=post)
                 upvote.put()
                 obj = {
                         'success': True,
@@ -450,19 +459,13 @@ class DeleteHandler(Handler):
         handled with confirm() in the javascript front end. Also deletes
         upvotes and comments for this post
         '''
-        post = Post.get_by_id(int(post_id))
+        post = models.Post.get_by_id(int(post_id))
         if not self.user:
             self.redirect('/login')
-        elif self.user.username != post.user:
+        elif self.user != post.user:
             self.render('permalink.html',
                         error='You cannot delete someone elses post')
         else:
-            comments = Comment.all().filter('post_id =', int(post_id)).get()
-            if comments:
-                db.delete(comments)
-            upvotes = Upvote.all().filter('post_id =', int(post_id)).get()
-            if upvotes:
-                db.delete(upvotes)
             post.delete()
 
 
@@ -490,7 +493,7 @@ class PermalinkHandler(Handler):  # For /permalink/{post_id}
     def get(self, post_id):
         '''Gets post id from URL. Retrieves post and sends page with that post
         '''
-        post = Post.get_by_id(int(post_id))
+        post = models.Post.get_by_id(int(post_id))
         if not post:
             self.error(404)
             return
@@ -504,7 +507,7 @@ class CommentDeleteHandler(Handler):
         deletes comment. Responds with success: True in JSON. If error,
         responds with success: False and error message in JSON
         '''
-        comment = Comment.get_by_id(int(comment_id))
+        comment = models.Comment.get_by_id(int(comment_id))
         if not self.user:
             obj = {
                     'success': False,

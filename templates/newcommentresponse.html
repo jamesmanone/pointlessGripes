@@ -1,9 +1,9 @@
 
 <div class="comment" id="{{comment.key().id()}}">
   <p>
-    <b>{{comment.user}}: </b> {{comment.comment}}
+    <b>{{comment.user.username}}: </b> {{comment.comment}}
     {% if user %}
-      {% if user.username == comment.user %}
+      {% if user.key() == comment.user.key() %}
         <span class="fontawesome-remove-sign"></span>
       {% endif %}
     {% endif %}

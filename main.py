@@ -16,6 +16,26 @@ jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir),
                                autoescape=True)
 
 
+def valid_post(self, fn, post_id):
+    def wrapper():
+        post = models.Post.get_by_id(int(post_id))
+        if not post:
+            self.error(404)
+            return
+        else:
+            fn()
+    return wrapper
+
+
+def logged_in(self, fn):
+    def wrapper():
+        if not self.user:
+            self.redirect('/login')
+        else:
+            fn()
+    return wrapper
+
+
 def make_cookie_hash(user):
     '''Takes user id and returns user id and hashstring for cookie
     '''
@@ -299,13 +319,13 @@ class SignupHandler(Handler):  # For /signup
 
 
 class NewPostHandler(Handler):  # For /newpost
+    @logged_in
     def get(self):
         '''Sends new post form if user is logged in, else redirects to /login
         '''
-        if not self.user:
-            self.redirect('/login')
         self.render('newpost.html', user=self.user)
 
+    @logged_in
     def post(self):
         '''Takes data from newpost form. If all fields are populated the
         content field will go through a custom escape function that allows

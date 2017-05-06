@@ -6,7 +6,12 @@ class UserHandler(Handler):  # For /user/{username}
     '''Retrieves posts by a specified user and displays them
     '''
     def get(self, user_id):
-        posts = models.User.by_name(user_id).posts.order('-created')
+        user = models.User.by_name(user_id)
+        if user:
+            posts = user.posts.order('-created')
+        else:
+            self.error(404)
+            return
         if posts:
             if self.user:
                 self.render('user.html', posts=posts, user=self.user,

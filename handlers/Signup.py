@@ -1,5 +1,5 @@
-import main
 import models
+import utls
 from proto import Handler
 
 
@@ -35,7 +35,7 @@ class SignupHandler(Handler):  # For /signup
                         error='Username and password must be a minimum \
                         of 6 characters')
         else:
-            password_hash = main.hashword_converter(username, password)
+            password_hash = utls.hashword_converter(username, password)
             newuser = models.User(username=username,
                                   password_hash=password_hash,
                                   email=email, upvotes=0)

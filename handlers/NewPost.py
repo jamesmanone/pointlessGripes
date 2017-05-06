@@ -1,4 +1,5 @@
-import main
+
+import utls
 import models
 from proto import Handler
 
@@ -19,18 +20,24 @@ class NewPostHandler(Handler):  # For /newposts
         passed to the Post constructer to be added to the db. The user is then
         redirected to the post's permalink
         '''
+        subject = self.request.get('subject')
+        content = self.request.get('content')
 
         @self.logged_in
         def make_post(subject, content):
             if not subject or not content:
-                self.render('newpost.html', subject=subject, content=content,
-                            error='We need a subject and some content')
+                obj = {
+                       'success': False,
+                       'message': 'We need a subject and some content'
+                }
             else:
-                content = main.content_escape(content)
+                content = utls.content_escape(content)
                 post = models.Post(subject=subject, content=content,
                                    user=self.user)
                 post.put()
-                self.redirect('/permalink/{0}'.format(post.key().id()))
-        subject = self.request.get('subject')
-        content = self.request.get('content')
+                obj = {
+                       'success': True,
+                       'post_id': post.key().id()
+                }
+            self.json(obj)
         make_post(subject, content)

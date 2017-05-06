@@ -1,5 +1,6 @@
-import main
+
 import models
+import utls
 from proto import Handler
 
 
@@ -23,15 +24,14 @@ class LoginHandler(Handler):  # For /login
             user = models.User.by_name(name)
             salt = user.password_hash.split('|')[1]
         else:
-            self.render('login.html', username=name,
-                        error="All fields required")
-            return
+            obj = {'success': False}
+            self.json(obj)
 
-        if user and user.password_hash == main.hashword_converter(name,
+        if user and user.password_hash == utls.hashword_converter(name,
                                                                   password,
                                                                   salt):
             self.set_cookie(str(user.key().id()))
-            self.redirect('/welcome')
+            obj = {'success': True}
+            self.json(obj)
         else:
-            self.render('login.html', username=name, error="Username\
-            or Password incorect")
+            obj = {'success': False}

@@ -12,10 +12,13 @@ class DeleteHandler(Handler):
         upvotes and comments for this post
         '''
         post = models.Post.get_by_id(int(post_id))
-        if not self.user:
-            self.redirect('/login')
-        elif self.user != post.user:
-            self.render('permalink.html',
-                        error='You cannot delete someone elses post')
-        else:
-            post.delete()
+
+        @self.logged_in
+        def delete_post(post):
+            if not self.valid_post(post):
+                return
+            elif not self.owns_post(post):
+                return
+            else:
+                post.delete()
+        delete_post(post)

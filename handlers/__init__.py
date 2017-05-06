@@ -10,3 +10,5 @@ from Signup import SignupHandler
 from Upvote import UpvoteHandler
 from UserHandler import UserHandler
 from proto import Handler
+from UsernameCheck import UsernameCheck
+from OnepostHandler import OnepostHandler

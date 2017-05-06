@@ -37,6 +37,34 @@ $(document).ready(function() {
     $(this).siblings('.comment-tab').show();
   });
 
+  $('.signup-button').click(function() {
+    $.get('/signup', function(data) {
+      $('.form-modal').html(data);
+      $('.form-modal').slideDown();
+    });
+  });
+
+  $('.login-button').click(function() {
+    $.get('/login', function(data) {
+      $('.login-modal').html(data);
+      $('.login-modal').slideDown();
+    });
+  });
+
+  $('.newpost').click(function() {
+    $.get('/newpost', function(data) {
+      $('.newpost-slide').html(data);
+      $('.newpost-slide').slideDown();
+    });
+  });
+
+  $('.fontawesome-edit').click(function () {
+    id = $(this).parents('article').attr('id');
+    $.get('/editpost/' + id, function(data) {
+      $('#' + id).html(data);
+    });
+  });
+
 });
 
 /* Takes post ID as input. After confirming delete, sends delete

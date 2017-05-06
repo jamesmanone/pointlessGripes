@@ -18,7 +18,7 @@
             <a href="/">The Gripes!</a>
           </li>
           <li>
-            <a href="/newpost">Post Gripe</a>
+            <a class="newpost">Post Gripe</a>
           </li>
           {% if user %}
             <li>
@@ -29,18 +29,26 @@
             </li>
           {% else %}
             <li>
-              <a href="/login">Login</a>
+              <a class="login-button">Login</a>
             </li>
             <li>
-              <a href="/signup">Signup</a>
+              <a class="signup-button">Signup</a>
             </li>
           {% endif %}
         </ul>
       </nav>
       <br>
     </header>
-
     <div class="content">
+    <div class="form-modal">
+
+    </div>
+    <div class="login-modal">
+
+    </div>
+    <div class="newpost-slide">
+
+    </div>
       {% block content %}
       {% endblock %}
     </div>

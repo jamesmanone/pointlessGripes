@@ -220,6 +220,78 @@ footer {
   font-size: 12px;
 }
 
+.form-modal {
+  display: none;
+  position: fixed;
+  left: auto;
+  width: 50%;
+  height: auto;
+  z-index: 1;
+  margin: auto;
+  background-color: #eae8e1;
+  border-style: solid;
+  border-width: 20px;
+  border-color: #353f4f;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+input.form-modal {
+  float: right;
+}
+
+input.login-modal {
+  float: right;
+}
+
+.login-modal {
+  display: none;
+  position: fixed;
+  left: auto;
+  width: 35%;
+  height: auto;
+  z-index: 1;
+  margin: auto;
+  background-color: #eae8e1;
+  border-style: solid;
+  border-width: 20px;
+  border-color: #353f4f;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+button {
+  border-style: none;
+  background-color: #353f4f;
+  color: white;
+  margin: 0;
+  padding: 2px;
+  min-width: 48px;
+  max-width: 100%;
+  max-height: 100%;
+  border-width: 0 2px 2px 0;
+  border-style: solid;
+  border-color: white;
+}
+
+a.form {
+  border-style: solid;
+  border-width: 1px;
+  color: blue;
+}
+
+.newpost-slide {
+  display: none;
+  background-color: #eae8e1;
+  width: 50%;
+  margin: auto;
+  margin-bottom: 10px;
+  border-width: thin;
+  border-style: solid;
+  border-radius: 5px;
+  padding: 5px;
+}
+
 @media only screen and (min-width: 500px) {
   .navbar {
     margin: 0 0 15px 0

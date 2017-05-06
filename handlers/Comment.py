@@ -4,6 +4,7 @@ from proto import Handler
 
 class CommentHandler(Handler):
     # This is an AJAX handler. Do not navigate here
+
     def get(self, post_id):
         '''Retrieves comments for post. Sends them to user in JSON
         '''
@@ -22,24 +23,29 @@ class CommentHandler(Handler):
         added to db, rendered using jinja, and returned to the user in JSON.
         If error, success: False and an error message is sent to user in JSON.
         '''
-        post = models.Post.get_by_id(int(post_id))
+
         comment = self.request.get('comment')
-        if not self.user:
-            obj = {
-                    'success': False,
-                    'message': 'You must be <a href="/login">logged in</a>\
-                    to comment',
-            }
-            self.json(obj)
-        else:
-            comment = models.Comment(user=self.user, comment=comment,
-                                     post=post)
-            comment.put()
-            print comment.comment
-            obj = {
-                    'success': True,
-                    'result': self.render_str('newcommentresponse.html',
-                                              comment=comment)
-                    }
-            print obj['result']
-            self.json(obj)
+        post = models.Post.get_by_id(int(post_id))
+
+        @self.logged_in
+        def post_comment(post, comment):
+            if not self.valid_post:
+                return
+            elif not comment:
+                obj = {
+                       'success': False,
+                       "message": 'You have to type a comment'
+                }
+            else:
+                comment = models.Comment(user=self.user, comment=comment,
+                                         post=post)
+                comment.put()
+                obj = {
+                        'success': True,
+                        'result': self.render_str('newcommentresponse.html',
+                                                  comment=comment,
+                                                  user=self.user)
+                        }
+                self.json(obj)
+
+        post_comment(post, comment)

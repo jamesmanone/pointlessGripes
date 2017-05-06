@@ -1,24 +1,11 @@
-{% extends "base.html" %}
-
-{% block content %}
+<script src="/static/js/login.js"></script>
 <div class="form">
-  <form method="post">
-    <table>
-      <tr class="user-management">
-        <td>Username</td>
-        <td><input type="text" name="username"></td>
-      </tr>
-      <tr class="user-management">
-        <td>Password</td>
-        <td><input type="password" name="password"></td>
-      </tr>
-      <tr class="user-management">
-        <td><input type="submit"></td>
-        <td>Not a member yet? <a href="/signup">Signup</a></td>
-      </tr>
-      <tr class="user-management">
-        <td class="error">{{error}}</td>
-      </tr>
-    </table>
-  </div>
-{% endblock %}
+  <span class="error"></span><br>
+  <label for="username">Username</label><br>
+  <input type="text" name="username"><br>
+  <label for="password">Password</label><br>
+  <input type="password" name="password"><br><br>
+  <button class="submit">submit</button>
+  <button class="cancel">cancel</button><br>
+  Not a member yet? <a class="signup">Signup</a>
+</div>

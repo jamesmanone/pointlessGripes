@@ -1,5 +1,5 @@
-import main
 import models
+import utls
 from proto import Handler
 
 
@@ -9,36 +9,51 @@ class EditHandler(Handler):  # for /editpost
         '''Sends a form to allow user to edit a post
         '''
         post = models.Post.get_by_id(int(post_id))
-        if not post:
-            self.error(404)
-            return
-        elif self.user.key() == post.user.key():
-            self.render('editpost.html', subject=post.subject,
-                        content=post.content, post_id=post_id, user=self.user)
-        else:
-            self.redirect('/login')
+
+        @self.logged_in
+        def display_editor(post):
+            if not post:
+                self.error(404)
+            elif not self.owns_post(post):
+                obj = {
+                       'success': False,
+                       'message': 'You can only modify your own post'
+                }
+                self.json(obj)
+            else:
+                print 'thundercats are goooooo!'
+                self.render('editpost.html', subject=post.subject,
+                            content=post.content)
+        display_editor(post)
 
     def post(self, post_id):
         '''Takes data from edit form. Verifies user owns the post, and if so
         updates post in db
         '''
         post = models.Post.get_by_id(int(post_id))
-        if not post:
-            self.error(404)
-            return
         subject = self.request.get('subject')
         content = self.request.get('content')
-        if not self.user:
-            self.redirect('/login')
-        elif self.user != post.user:
-            self.error(401)
-            return
-        elif not subject or not content:
-            self.render('editpost.html', post=post, subject=subject,
-                        content=content,
-                        error='We need a subject and some content')
-        else:
-            post.subject = subject
-            post.content = main.content_escape(content)
-            post.put()
-            self.redirect('/permalink/{0}'.format(post_id))
+
+        @self.logged_in
+        def edit(subject, content, post):
+            if not self.valid_post:
+                return
+            elif not self.owns_post(post):
+                return
+            elif not subject or not content:
+                obj = {
+                       'success': False,
+                       'message': 'We need a subject and some content'
+                }
+            else:
+                post.subject = subject
+                post.content = utls.content_escape(content)
+                post.put()
+                obj = {
+                       'success': True,
+                       'response': self.render_str('onepost.html', post=post,
+                                                   user=self.user)
+                }
+            self.json(obj)
+
+        edit(subject, content, post)

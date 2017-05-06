@@ -1,37 +1,10 @@
-{% extends "base.html" %}
-{% block content %}
-<form method="post">
-  <table class="user-management">
-    <tr>
-      <td>
-        Subject
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <input type="text" name="subject" size="50" value="{{subject}}">
-      </td>
-    </tr>
-    <tr>
-      <td>
-        Content
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <textarea name="content" rows="5" cols="50" required="True">{{content}}</textarea>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <button name="Submit" type="submit">Gripe!</button>
-      </td>
-    </tr>
-    <tr>
-      <td class="error">
-        {{error}}
-      </td>
-    </tr>
-  </table>
-</form>
-{% endblock %}
+<script src="/static/js/post.js"></script>
+<div class="newpost-form">
+  <label for="subject">Subject</label><br>
+  <input type="text" name="subject" size="50" value="{{subject}}"><br>
+  <label for="content">Content</label>
+  <textarea name="content" rows="5" cols="50" required="True"></textarea><br><br>
+  <button class="submit">Gripe!</button>
+  <button class="cancel">Cancel</button>
+  <span class="error"></span>
+</div>

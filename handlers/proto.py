@@ -3,7 +3,8 @@ import os
 import webapp2
 import jinja2
 import models
-import main
+import utls
+from functools import wraps
 
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -33,24 +34,51 @@ class Handler(webapp2.RequestHandler):
         '''Makes and sets a cookie
         '''
         self.response.headers.add_header(
-            'Set-Cookie', 'user={0}; Path=/'.format(main.make_cookie_hash(key)))  # NOQA: E501
+            'Set-Cookie', 'user={0}; Path=/'.format(utls.make_cookie_hash(key)))  # NOQA: E501
 
-    def valid_post(self, fn, post_id):
-        def wrapper():
-            post = models.Post.get_by_id(int(self.request.get('post_id')))
-            if not post:
-                self.error(404)
-                return
+    def valid_post(self, post):
+        if post:
+            return True
+        else:
+            self.error(404)
+            return False
+
+    def owns_post(self, post):
+            if post:
+                return True
             else:
-                fn(post)
-        return wrapper
+                obj = {
+                       'success': False,
+                       'message': 'You can only modify your own posts'
+                }
+                self.json(obj)
+                return False
 
-    def logged_in(self, func):
-        def wrapper():
+    def valid_comment(self, comment):
+        if comment:
+            return True
+        else:
+            self.error(404)
+            return False
+
+    def owns_comment(self, comment):
+        if comment.user.key() == self.user.key():
+            return True
+        else:
+            obj = {
+                   'success': False,
+                   'message': 'You can only delete your own comment'
+                   }
+            self.json(obj)
+            return False
+
+    def logged_in(self, fn, *args, **kwargs):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
             if not self.user:
                 self.redirect('/login')
             else:
-                func()
+                fn(*args, **kwargs)
         return wrapper
 
     def initialize(self, *a, **kw):
@@ -59,7 +87,7 @@ class Handler(webapp2.RequestHandler):
         '''
         webapp2.RequestHandler.initialize(self, *a, **kw)
         cookie = self.request.cookies.get('user')
-        if cookie and main.check_cookie_hash(cookie):
+        if cookie and utls.check_cookie_hash(cookie):
             user = int(cookie.split('|')[0])
             self.user = models.User.get_by_id(user)
         else:

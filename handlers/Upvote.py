@@ -12,9 +12,13 @@ class UpvoteHandler(Handler):
         and error message is sent in JSON
         '''
         post = models.Post.get_by_id(int(post_id))
-        if self.user:
+
+        @self.logged_in
+        def new_upvote(post):
+            if not self.valid_post(post):
+                return
             upvote = post.upvotes.filter('user =', self.user).get()
-            if post.user == self.user:
+            if post.user.key() == self.user.key():
                 self.response.headers['Content-Type'] = 'application/json'
                 obj = {
                         'success': False,
@@ -36,5 +40,4 @@ class UpvoteHandler(Handler):
                         'message': ' ' + str(post.upvote)
                         }
                 self.json(obj)
-        else:
-            self.error(401)
+        new_upvote(post)

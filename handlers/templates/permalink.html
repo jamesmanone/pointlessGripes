@@ -9,7 +9,8 @@
       <div class="interact">
         {% if user %}
           {% if user.key() == post.user.key() %}
-          <p class="interact"><a class="edit-link" href="/editpost/{{post.key().id()}}"><span class="fontawesome-edit"></span></a>
+          <p class="interact">
+            <span class="fontawesome-edit"></span>
             <span class="fontawesome-trash"></span>
             <span class="fontawesome-plus-sign-alt"> </span> <span class="upvote-count"> {{post.upvote}}</span></p>
           {% else %}

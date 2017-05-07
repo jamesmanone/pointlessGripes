@@ -48,7 +48,7 @@ class Handler(webapp2.RequestHandler):
             return False
 
     def owns_post(self, post):
-            if post:
+            if post.user.key() == self.user.key():
                 return True
             else:
                 obj = {

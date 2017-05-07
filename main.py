@@ -63,6 +63,7 @@ app = webapp2.WSGIApplication([
     ('/user/([a-z0-9]+)', handlers.UserHandler),
     ('/delete/([0-9]+)', handlers.DeleteHandler),
     ('/commentdelete/([0-9]+)', handlers.CommentDeleteHandler),
+    ('/editcomment/([0-9]+)', handlers.EditComment),
     ('/comments/([0-9]+)', handlers.CommentHandler),
     ('/upvote/([0-9]+)', handlers.UpvoteHandler)
 ], debug=True)

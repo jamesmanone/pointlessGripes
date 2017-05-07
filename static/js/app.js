@@ -13,6 +13,13 @@ $(document).ready(function() {
     trash(id);
   });
 
+  $('comments').on('click', '.fontawesome-pencil', function() {
+    var id = $(this).parents('comment').attr('id');
+    $.get('/editcomment/' + id, function(data, id) {
+      $('#' + id).html(data);
+    });
+  });
+
   // Sets event listener for new comment box. If new comment, posts comment
   $('.submit-comment').click(function() {
     id = $(this).parents('article').attr('id');

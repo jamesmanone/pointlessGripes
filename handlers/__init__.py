@@ -12,3 +12,4 @@ from UserHandler import UserHandler
 from proto import Handler
 from UsernameCheck import UsernameCheck
 from OnepostHandler import OnepostHandler
+from EditComment import EditComment

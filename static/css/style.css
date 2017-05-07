@@ -12,6 +12,11 @@
   text-shadow: 2px 2px 1px #b5bdc9;
 }
 
+[class*="fontawesome-pencil"]:before {
+  font-family: 'FontAwesome', sans-serif;
+  text-shadow: 2px 2px 1px #b5bdc9;
+}
+
 [class*="fontawesome-edit"]:before {
   font-family: 'FontAwesome', sans-serif;
   text-shadow: 2px 2px 1px #b5bdc9;

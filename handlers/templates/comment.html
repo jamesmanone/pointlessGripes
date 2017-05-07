@@ -4,6 +4,7 @@
       <b>{{comment.user.username}}: </b> {{comment.comment}}
       {% if user %}
         {% if user.key() == comment.user.key() %}
+          <span class="fontawesome-pencil"></span>
           <span class="fontawesome-remove-sign"></span>
         {% endif %}
       {% endif %}

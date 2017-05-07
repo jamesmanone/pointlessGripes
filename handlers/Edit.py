@@ -32,7 +32,7 @@ class EditHandler(Handler):  # for /editpost
 
         @self.logged_in
         def edit(subject, content, post):
-            if not self.valid_post:
+            if not self.valid_post(post):
                 return
             elif not self.owns_post(post):
                 return

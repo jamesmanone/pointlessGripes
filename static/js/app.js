@@ -8,27 +8,26 @@
 $(document).ready(function() {
 
   // Event listener for delete post
-  $('.fontawesome-trash').click(function () {
+  $('article').on('click', '.fontawesome-trash', function () {
     id = $(this).parents("article").attr('id');
     trash(id);
   });
 
-  $('comments').on('click', '.fontawesome-pencil', function() {
-    var id = $(this).parents('comment').attr('id');
-    $.get('/editcomment/' + id, function(data, id) {
-      $('#' + id).html(data);
+  $('article').on('click', '.fontawesome-pencil', function() {
+    var id = $(this).parents('.comment').attr('id');
+    $.get('/editcomment/' + id, function(data) {
+      $('#' + id).html(data.response);
     });
   });
 
   // Sets event listener for new comment box. If new comment, posts comment
-  $('.submit-comment').click(function() {
+  $('article').on('click', '.submit-comment', function() {
     id = $(this).parents('article').attr('id');
     commentVal = $(this).siblings('input[name="newcomment"]').val();
     comments = $('#' + id).children('.comments');
     $.post('/comments/' + id, {
       'comment': commentVal
     }, function (data) {
-      console.log('posted');
         comments.append(data.result);
     });
   });
@@ -40,7 +39,7 @@ $(document).ready(function() {
   });
 
   // Event listener for comments drawer
-  $('.comment-tab').click(function() {
+  $('article').on('click', '.comment-tab', function() {
     id = $(this).parents('article').attr('id');
     $(this).hide();
     $(this).siblings('.open-tab').show();
@@ -48,7 +47,7 @@ $(document).ready(function() {
   });
 
   // Event  listener to close comment drawer
-  $('.open-tab').click(function() {
+  $('article').on('click', '.open-tab', function() {
     var comments = $(this).siblings('.comments');
     comments.slideUp();
     comments.empty();
@@ -82,7 +81,7 @@ $(document).ready(function() {
   });
 });
 
-  $('.fontawesome-edit').click(function () {
+  $('article').on('click', '.fontawesome-edit', function () {
     id = $(this).parents('article').attr('id');
     $.get('/editpost/' + id, function(data) {
       $('#' + id).html(data);

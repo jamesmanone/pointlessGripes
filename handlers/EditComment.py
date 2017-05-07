@@ -25,29 +25,28 @@ class EditComment(Handler):
             self.json(obj)
         comment_form(comment)
 
-        def post(self, comment_id):
-            newcomment = self.request.get('comment')
-            cancel = self.request.get('cancel')
-            comment = models.Comment.get_by_id(int(comment_id))
+    def post(self, comment_id):
+        newcomment = self.request.get('comment')
+        cancel = self.request.get('cancel')
+        comment = models.Comment.get_by_id(int(comment_id))
 
-            @self.logged_in
-            def edit_comment(comment, newcomment):
-                if not self.valid_comment(comment):
-                    return False
-                elif not self.owns_comment(comment):
-                    return False
-                else:
-                    comment.comment = newcomment
-                    comment.put()
-                    return True
+        @self.logged_in
+        def edit_comment(comment, newcomment):
+            if not self.valid_comment(comment):
+                return False
+            elif not self.owns_comment(comment):
+                return False
+            else:
+                comment.comment = newcomment
+                comment.put()
+                return True
 
-            success = True
-            if not cancel:
-                success = edit_comment(comment, newcomment)
-            if success:
-                obj = {
-                       'success': True,
-                       'response': self.render_str('comment.html',
-                                                   comments=comment)
-                }
-                self.json(obj)
+        if not cancel:
+            edit_comment(comment, newcomment)
+        obj = {
+               'success': True,
+               'response': self.render_str('editcommentresponse.html',
+                                           comment=comment,
+                                           user=self.user)
+        }
+        self.json(obj)

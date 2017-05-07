@@ -12,14 +12,10 @@ class EditHandler(Handler):  # for /editpost
 
         @self.logged_in
         def display_editor(post):
-            if not post:
-                self.error(404)
+            if not self.valid_post(post):
+                return
             elif not self.owns_post(post):
-                obj = {
-                       'success': False,
-                       'message': 'You can only modify your own post'
-                }
-                self.json(obj)
+                return
             else:
                 print 'thundercats are goooooo!'
                 self.render('editpost.html', subject=post.subject,

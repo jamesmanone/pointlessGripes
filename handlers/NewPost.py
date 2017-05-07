@@ -10,7 +10,11 @@ class NewPostHandler(Handler):  # For /newposts
         '''
         @self.logged_in
         def new_post():
-            self.render('newpost.html', user=self.user)
+            obj = {
+                   'success': True,
+                   'result': self.render_str('newpost.html', user=self.user)
+            }
+            self.json(obj)
         new_post()
 
     def post(self):

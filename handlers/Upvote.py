@@ -14,7 +14,7 @@ class UpvoteHandler(Handler):
         post = models.Post.get_by_id(int(post_id))
 
         @self.logged_in
-        def new_upvote(post):
+        def new_upvote(post, post_id):
             if not self.valid_post(post):
                 return
             upvote = post.upvotes.filter('user =', self.user).get()
@@ -35,9 +35,10 @@ class UpvoteHandler(Handler):
             else:
                 upvote = models.Upvote(user=self.user, post=post)
                 upvote.put()
+                post = models.Post.get_by_id(int(post_id))
                 obj = {
                         'success': True,
-                        'message': ' ' + str(post.upvote)
+                        'message': ' ' + str(post.upvote + 1)
                         }
                 self.json(obj)
-        new_upvote(post)
+        new_upvote(post, post_id)

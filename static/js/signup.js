@@ -29,7 +29,7 @@ $(document).ready(function() {
     }
   });
 
-  $('input[name="password"]').change(function() {
+  $('input[name="password"]').blur(function() {
     password = $('input[name="password"]').val();
     if(password.length < 6) {
       $('.password-error').html('Password must be at least 6 characters');
@@ -38,7 +38,7 @@ $(document).ready(function() {
     }
   });
 
-  $('input[name="passcheck"]').change(function() {
+  $('input[name="passcheck"]').blur(function() {
     password = $('input[name="password"]').val();
     passcheck = $('input[name="passcheck"]').val();
     if(password !== passcheck) {
@@ -56,7 +56,7 @@ $(document).ready(function() {
       $('.form-modal').empty();
     });
   });
-  
+
 });
 
 function submit() {
@@ -70,8 +70,12 @@ function submit() {
       'password': password,
       'passcheck': passcheck,
       'email': email
-    }, function() {
-      location.reload(true);
+    }, function(data) {
+      if(data.success) {
+        location.assign('/welcome');
+      } else {
+        
+      }
     });
   }
 }

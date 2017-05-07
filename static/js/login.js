@@ -11,7 +11,7 @@ $(document).ready(function() {
       'password': password
     }, function(data) {
       if(data.success) {
-        location.reload(true);
+        location.assign('/welcome');
       } else {
         $('.error').html('Incorrect username or password');
       }
@@ -31,5 +31,5 @@ $(document).ready(function() {
       $('.login-modal').empty();
     });
   });
-  
+
 });

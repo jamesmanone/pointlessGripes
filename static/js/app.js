@@ -13,6 +13,19 @@ $(document).ready(function() {
     trash(id);
   });
 
+  // Sets event listener for new comment box. If new comment, posts comment
+  $('.submit-comment').click(function() {
+    id = $(this).parents('article').attr('id');
+    commentVal = $(this).siblings('input[name="newcomment"]').val();
+    comments = $('#' + id).children('.comments');
+    $.post('/comments/' + id, {
+      'comment': commentVal
+    }, function (data) {
+      console.log('posted');
+        comments.append(data.result);
+    });
+  });
+
   // Event listener for upvote
   $('.fontawesome-plus').click(function() {
     id = $(this).parents("article").attr('id');
@@ -53,10 +66,14 @@ $(document).ready(function() {
 
   $('.newpost').click(function() {
     $.get('/newpost', function(data) {
-      $('.newpost-slide').html(data);
-      $('.newpost-slide').slideDown();
-    });
+      if(data.success) {
+        $('.newpost-slide').html(data.result);
+        $('.newpost-slide').slideDown();
+      } else {
+        $('.login-button').trigger('click');
+      }
   });
+});
 
   $('.fontawesome-edit').click(function () {
     id = $(this).parents('article').attr('id');
@@ -109,7 +126,6 @@ var openCommments = function(id) {
     });
     comments.slideDown();
     comments.siblings('.newcomment').slideDown();
-    activateCommentBox();
 
     $('.fontawesome-remove-sign').click(function() {
       console.log('click');
@@ -119,26 +135,6 @@ var openCommments = function(id) {
   });
 };
 
-// Sets event listener for new comment box. If new comment, posts comment
-var activateCommentBox = function() {
-  $('button').click(function() {
-    id = $(this).parents('article').attr('id');
-    commentVal = $(this).siblings('input').val();
-    comments = $('#' + id).children('.comments');
-    $.post('/comments/' + id, {
-      comment: commentVal
-    }, function (data) {
-      $.each(data, function(key, value) {
-        if(key !== 'success') {
-          comments.append(value);
-        }
-      });
-    })
-    .fail(function(data) {
-      $('.newcomment').after(data.message);
-    });
-  });
-};
 
 // Deletes comment using AJAX post.
 var deleteComment = function(id) {

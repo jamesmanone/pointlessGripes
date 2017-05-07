@@ -40,7 +40,11 @@ class Handler(webapp2.RequestHandler):
         if post:
             return True
         else:
-            self.error(404)
+            obj = {
+                   'success': False,
+                   'message': 'This is not a valid post ID'
+            }
+            self.json(obj)
             return False
 
     def owns_post(self, post):
@@ -76,7 +80,12 @@ class Handler(webapp2.RequestHandler):
         @wraps(fn)
         def wrapper(*args, **kwargs):
             if not self.user:
-                self.redirect('/login')
+                obj = {
+                       'success': False,
+                       'message': 'Login Required'
+                }
+                self.json(obj)
+                return
             else:
                 fn(*args, **kwargs)
         return wrapper

@@ -9,13 +9,18 @@ class CommentHandler(Handler):
         '''Retrieves comments for post. Sends them to user in JSON
         '''
         post = models.Post.get_by_id(int(post_id))
-        comments = post.comments
-        obj = {'success': True}
-        if comments and self.user:
-            obj['result'] = self.render_str('comment.html', comments=comments,
-                                            user=self.user)
-        elif comments:
-            obj['result'] = self.render_str('comment.html', comments=comments)
+        if post:
+            comments = post.comments
+            obj = {'success': True}
+            if comments and self.user:
+                obj['result'] = self.render_str('comment.html',
+                                                comments=comments,
+                                                user=self.user)
+            elif comments:
+                obj['result'] = self.render_str('comment.html',
+                                                comments=comments)
+        else:
+            obj = {'success': False}
         self.json(obj)
 
     def post(self, post_id):
@@ -45,7 +50,7 @@ class CommentHandler(Handler):
                         'result': self.render_str('newcommentresponse.html',
                                                   comment=comment,
                                                   user=self.user)
-                        }
+                }
                 self.json(obj)
 
         post_comment(post, comment)

@@ -24,12 +24,17 @@ class WelcomeHandler(proto.Handler):  # For /welcome
     def get(self):
         '''Sends a simple welcome message when user logs in
         '''
-        if self.user:
-            self.render('welcome.html', user=self.user)
-        else:
-            self.redirect('/login')
-            # I know this should redirect to /signup, but this follows
-            # how most websites work. I hope I'm allowed this license
+        @self.logged_in
+        def welcome():
+            posts = models.Post.all().order('-created')
+            if posts:
+                if self.user:
+                    self.render('welcome.html', posts=posts, user=self.user)
+                else:
+                    self.redirect('/')
+            else:
+                self.render('welcome.html')
+        welcome()
 
 
 class PermalinkHandler(proto.Handler):  # For /permalink/{post_id}
@@ -60,4 +65,4 @@ app = webapp2.WSGIApplication([
     ('/commentdelete/([0-9]+)', handlers.CommentDeleteHandler),
     ('/comments/([0-9]+)', handlers.CommentHandler),
     ('/upvote/([0-9]+)', handlers.UpvoteHandler)
-], debug=False)
+], debug=True)

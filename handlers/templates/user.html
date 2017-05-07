@@ -14,14 +14,14 @@
           <div class="interact">
             {% if user %}
               {% if user.key() == post.user.key() %}
-              <p class="interact"><a class="edit-link" href="/editpost/{{post.key().id()}}"><span class="fontawesome-edit"></span></a>
-                <span class="fontawesome-trash"></span>
-                <span class="fontawesome-plus-sign-alt"> </span> <span class="upvote-count"> {{post.upvote}}</span></p>
+                <p class="interact">
+                  <span class="fontawesome-edit"></span>
+                  <span class="fontawesome-trash"></span>
+                  <span class="fontawesome-plus-sign-alt"> </span> <span class="upvote-count"> {{post.upvote}}</span></p>
               {% else %}
                 <p class="interact"><span class="error"></span><span class="fontawesome-plus"></span><span class="upvote-count"> {{post.upvote}}</span></p>
               {% endif %}
             {% endif %}
-            {{post.upvote}}
             </div>
           </div>
         <div class="content">
@@ -31,13 +31,13 @@
         <br>
         </div>
         <div class="tail">
-          <a href="/user/{{post.user}}"<em>-{{post.user.username}}</em></a>
+          <a href="/user/{{post.user.username}}"<em>-{{post.user.username}}</em></a>
         </div>
         <div class="comments">
         </div>
         <div class="newcomment">
-          <input name="newcomment" type="text" value="{{comment}}">
-          <button name="submit">Send</button>
+          <input name="newcomment" type="text">
+          <button class="submit-comment">Send</button>
         </div>
         <div class="comment-tab">
           <span class="fontawesome-double-angle-down"></span> comments <span class="fontawesome-double-angle-down"></span>
@@ -47,5 +47,8 @@
         </div>
       </article>
     {% endfor %}
+    <div class="pagenav">
+      <a href="/page/2">Next page</a>
+    </div>
   </div>
 {% endblock %}

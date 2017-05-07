@@ -19,19 +19,27 @@ class LoginHandler(Handler):  # For /login
         '''
         name = self.request.get('username')
         password = self.request.get('password')
-
-        if name and password:
+        if name:
             user = models.User.by_name(name)
+        if not name or not password:
+            obj = {
+                   'success': False,
+                   'message': 'You must enter username and password'
+            }
+        elif not user:
+            obj = {
+                   'success': False,
+                   'message': 'Username or password incorrect'
+            }
+        else:
             salt = user.password_hash.split('|')[1]
-        else:
-            obj = {'success': False}
-            self.json(obj)
-
-        if user and user.password_hash == utls.hashword_converter(name,
-                                                                  password,
-                                                                  salt):
-            self.set_cookie(str(user.key().id()))
-            obj = {'success': True}
-            self.json(obj)
-        else:
-            obj = {'success': False}
+            if user.password_hash != utls.hashword_converter(name, password,
+                                                             salt):
+                obj = {
+                       'success': False,
+                       'message': 'Username or password incorrect'
+                }
+            else:
+                self.set_cookie(str(user.key().id()))
+                obj = {'success': True}
+                self.json(obj)

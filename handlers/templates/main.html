@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+
   <div class="stream">
     {% for post in posts %}
       <article class="post" id="{{post.key().id()}}">
@@ -33,8 +34,8 @@
         <div class="comments">
         </div>
         <div class="newcomment">
-          <input name="newcomment" type="text" value="{{comment}}">
-          <button name="submit">Send</button>
+          <input name="newcomment" type="text">
+          <button class="submit-comment">Send</button>
         </div>
         <div class="comment-tab">
           <span class="fontawesome-double-angle-down"></span> comments <span class="fontawesome-double-angle-down"></span>

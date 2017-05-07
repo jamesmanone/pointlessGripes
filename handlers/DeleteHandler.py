@@ -20,5 +20,13 @@ class DeleteHandler(Handler):
             elif not self.owns_post(post):
                 return
             else:
+                comments = post.comments
+                for comment in comments:
+                    comment.delete()
+                upvotes = post.upvotes
+                for upvote in upvotes:
+                    upvote.delete()
                 post.delete()
         delete_post(post)
+
+# This code looks like a moon. I should sleep.

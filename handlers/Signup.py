@@ -25,15 +25,20 @@ class SignupHandler(Handler):  # For /signup
         in_use = models.User.by_name(username)
 
         if in_use:
-            self.render('signup.html', username=username, email=email,
-                        error='Username taken')
+            obj = {
+                   'success': False,
+                   'message': 'Username in use'
+            }
         elif password != passcheck:
-            self.render('signup.html', username=username, email=email,
-                        error='Passwords do not match')
+            obj = {
+                   'success': False,
+                   'message': 'Passwords do not match'
+            }
         elif len(password) < 6 or len(username) < 6:
-            self.render('signup.html', username=username, email=email,
-                        error='Username and password must be a minimum \
-                        of 6 characters')
+            obj = {
+                   'success': False,
+                   'message': 'Passwords must be at least 6 characters'
+            }
         else:
             password_hash = utls.hashword_converter(username, password)
             newuser = models.User(username=username,
@@ -41,5 +46,7 @@ class SignupHandler(Handler):  # For /signup
                                   email=email, upvotes=0)
             newuser.put()
             self.set_cookie(str(newuser.key().id()))
-
-            self.redirect('/welcome')
+            obj = {
+                   'success': True,
+            }
+        self.json(obj)
